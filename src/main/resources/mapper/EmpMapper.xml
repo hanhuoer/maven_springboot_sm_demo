@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+ 
+ 
+<mapper namespace="com.aaa.mapper.IEmpMapper">
+
+    <!--员工登录  -->
+	<select id="empLogin" resultType="int">
+	   select id from login where username=#{username} and password=#{password}
+	</select>
+	
+	<!-- 查询员工信息 -->
+	<select id="getEmpByLoginID" resultType="com.aaa.vo.Employee">
+	   select * from employee where loginID = #{id}
+	</select>
+	
+	<!--获取员工权限  -->
+	<resultMap type="map" id="perMap">
+	   <id column="id"  property="id"   />
+	   <result column="name"  property="name" />
+	   <!-- 
+	     {id:id,name:name,subMenu:[]}
+	    -->
+	   <collection column="{pid=id,rid=rid}" property="subMenu"  javaType="list" select="getSubMenu" />
+	</resultMap>
+	
+	<select id="getPermission" resultMap="perMap">
+	  select DISTINCT p1.id id,p1.name name ,r.rid rid
+	  from role_per  r 
+	  INNER JOIN permission p on r.pid = p.id 
+	  INNER JOIN  permission  p1 ON p.parentid = p1.id  
+	  where r.rid = #{roleID}
+	</select>
+	
+	<select id="getSubMenu" parameterType="map" resultType="map">
+	  select p.id id ,p.name label,p.url url
+	    from role_per  r 
+	    INNER JOIN permission p on r.pid = p.id   
+	    where  p.parentid = #{pid} and r.rid = #{rid}
+	</select>
+	
+	<!-- 分页+查询 -->
+	<sql id="empQuery">
+	    <where>
+	        <if test="name != null and name != ''">
+	           and e.name  like CONCAT('%',#{name},'%')
+	        </if>
+	        <if test="beginDate != null and beginDate != '' ">
+	           and e.hiredate &gt;  #{beginDate}
+	        </if>
+	        <if test="endDate != null and endDate != '' ">
+	           and e.hiredate &lt;  #{endDate}
+	        </if>
+	    </where>
+	</sql>
+	
+	<select id="getEmp" resultType="map">
+	      select e.id ,e.name,e.telephone ,e.hiredate,e.state,d.name dname,r.name rname 
+	      from employee e INNER JOIN department d on e.deptID = d.id 
+	      INNER JOIN role r ON e.roleID = r.id 
+	      <include refid="empQuery" />
+	      limit #{page},#{count}
+	</select>
+	
+	<select id="getEmpTotal" resultType="java.lang.Integer">
+	      select count(*) c from employee e
+	      <include refid="empQuery" />
+	</select>
+
+	<!-- 查询部门    角色 -->
+	<select id="getDept" resultType="map">
+	      select id,name from department
+	</select>
+	<select id="getRole" resultType="map">
+	      select id,name from role
+	</select>
+	
+	<!-- 添加新账号 -->
+	<insert id="addLoginAccount"  useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+	    insert into login values (null,#{username},#{password})
+	</insert>
+	
+	<!-- 添加新员工 -->
+	<insert id="addEmp"  >
+	    insert into employee (name,telephone,deptID,roleID,state,loginID) values (#{name},#{telephone},#{deptID},#{roleID},#{state},#{loginID})
+	</insert>
+	
+	<!-- 删除员工 -->
+	<delete id="deleteEmp" >
+			delete employee,login 
+			from employee
+			left join login
+			on employee.loginID = login.id
+			where employee.id in
+		<foreach collection="array" item="id"  open="("
+			separator="," close=")">
+			#{id}
+		</foreach>
+	</delete>
+	
+	<!-- 根据id获取员工 -->
+	<select id="getEmpByID" resultType="com.aaa.vo.Employee">
+	   select *  from  employee where id = #{id}
+	</select>
+	
+	<!-- 修改员工 -->
+	<update id="editEmp">
+	    update employee set name=#{name},telephone=#{telephone},deptID=#{deptID},roleID=#{roleID},state=#{state} where id=#{id}
+	</update>
+	
+</mapper>
+
+
+
+
+
