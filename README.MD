@@ -2,7 +2,7 @@
 
 > 在 IDEA 开发环境下 <br>
 使用 Maven 项目构建工具 <br>
-整合 Spring Boot + Spring + Spring MVC + Mybatis
+整合 Spring Boot + Spring MVC + Mybatis
 
 ## 开发环境
 
