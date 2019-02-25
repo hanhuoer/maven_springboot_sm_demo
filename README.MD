@@ -9,7 +9,6 @@
 - IDEA
 - Maven
 - Spring Boot
-- Spring
 - Spring MVC
 - Mybatis
 - Vue
